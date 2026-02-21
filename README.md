@@ -15,7 +15,7 @@ Ensure you have Node.js and NPM installed on your machine.
 ```bash
 # Clone the repository
 git clone https://github.com/Dohmanlechx/YouTube-Dynamic-Captions.git
-cd dynamic_captions
+cd YouTube-Dynamic-Captions
 
 # Install the build dependencies (esbuild)
 npm install
