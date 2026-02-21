@@ -6,7 +6,7 @@ export const state = {
     extensionEnabled: true,
     lastCaptionX: null,
     lastCaptionY: null,
-    consecutiveFramesWithoutFace: 0
+    lastFaceSeenAt: null
 };
 
 export function initState() {

@@ -1,4 +1,4 @@
-import { POSITION_UPDATE_THRESHOLD } from '../config.js';
+import { POSITION_UPDATE_THRESHOLD, RESET_DELAY_SECONDS } from '../config.js';
 import { state } from '../state.js';
 import { clearDebugBox, drawDebugBox } from '../ui/debug.js';
 
@@ -20,20 +20,25 @@ export function resetCaptionPosition() {
 }
 
 export function handleDetectionResults(results, videoElement, activeCaptionWindows) {
-    // If no face is found, wait a few frames before resetting to YouTube's default
-    if (!results.detections || results.detections.length !== 1) {
+    // If no face is found, debounce — wait RESET_DELAY_SECONDS before resetting
+    if (!results.detections || results.detections.length === 0) {
         clearDebugBox();
-        state.consecutiveFramesWithoutFace++;
-        // 3 consecutive frames (approx 3 seconds) without a face
-        if (state.consecutiveFramesWithoutFace >= 3) {
-            state.lastCaptionX = null;
-            state.lastCaptionY = null;
-            resetCaptionPosition();
+
+        // Record when we first lost the face
+        if (state.lastFaceSeenAt !== null) {
+            const elapsedMs = Date.now() - state.lastFaceSeenAt;
+            if (elapsedMs >= RESET_DELAY_SECONDS * 1000) {
+                state.lastCaptionX = null;
+                state.lastCaptionY = null;
+                state.lastFaceSeenAt = null;
+                resetCaptionPosition();
+            }
         }
         return;
     }
 
-    state.consecutiveFramesWithoutFace = 0;
+    // Face is visible — record the timestamp
+    state.lastFaceSeenAt = Date.now();
 
     // Pick the largest face if multiple detections occur (e.g. background faces)
     let face = results.detections[0];

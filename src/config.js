@@ -21,3 +21,10 @@ export const MAX_FACES = 1;
  * Lower values may cause false positives, higher values may cause it to lose tracking.
  */
 export const MIN_DETECTION_CONFIDENCE = 0.5;
+
+/**
+ * How many seconds the extension will wait after losing sight of a face
+ * before resetting the captions back to YouTube's default center position.
+ * This prevents the captions from flickering back during brief camera cuts.
+ */
+export const RESET_DELAY_SECONDS = 3;
