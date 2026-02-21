@@ -11,12 +11,6 @@ export const POSITION_UPDATE_THRESHOLD = 150;
 export const DEBUG_DRAW_FACE = false;
 
 /**
- * The maximum number of faces the AI will attempt to find in a single video frame.
- * Setting this to 1 dramatically reduces CPU usage on videos with crowds or multiple people.
- */
-export const MAX_FACES = 1;
-
-/**
  * The minimum confidence score (0.0 to 1.0) required for a face detection to be considered valid.
  * Lower values may cause false positives, higher values may cause it to lose tracking.
  */

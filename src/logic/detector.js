@@ -1,4 +1,4 @@
-import { MAX_FACES, MIN_DETECTION_CONFIDENCE } from '../config.js';
+import { MIN_DETECTION_CONFIDENCE } from '../config.js';
 import { state } from '../state.js';
 import { startDetectionLoop } from './tracker.js';
 
@@ -57,9 +57,7 @@ export async function initFaceDetector() {
             },
             runningMode: "VIDEO",
             minDetectionConfidence: MIN_DETECTION_CONFIDENCE,
-            // Drastically reduces WebAssembly CPU load by 
-            // capping mathematical bounding calculations to 1 face per frame.
-            maxResults: MAX_FACES
+            maxResults: 2
         });
 
         console.log("[Dynamic Captions] FaceDetector initialized.");

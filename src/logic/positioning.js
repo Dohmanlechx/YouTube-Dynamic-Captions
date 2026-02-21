@@ -20,8 +20,9 @@ export function resetCaptionPosition() {
 }
 
 export function handleDetectionResults(results, videoElement, activeCaptionWindows) {
-    // If no face is found, debounce — wait RESET_DELAY_SECONDS before resetting
-    if (!results.detections || results.detections.length === 0) {
+    // Only track when EXACTLY 1 face is visible.
+    // 0 faces = nobody on screen, 2+ faces = conversation/crowd — both reset to default.
+    if (!results.detections || results.detections.length !== 1) {
         clearDebugBox();
 
         // Record when we first lost the face
