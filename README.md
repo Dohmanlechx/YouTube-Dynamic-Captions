@@ -24,6 +24,10 @@ npm install
 npm run build
 ```
 
+### Configuration
+
+Before building, you can adjust the extension's behavior by editing `src/config.js` to meet your needs. Each option is documented inline.
+
 ### Loading into Chrome (or any Chromium-based web browser)
 
 1. Open a new tab in Google Chrome and navigate to `chrome://extensions/`
