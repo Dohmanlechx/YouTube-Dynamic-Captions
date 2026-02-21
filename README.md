@@ -10,7 +10,7 @@ Ensure you have Node.js and NPM installed on your machine so you can build.
 
 ```bash
 # Clone the repository
-git clone https://github.com/dohmanlechx/dynamic_captions.git
+git clone https://github.com/Dohmanlechx/YouTube-Dynamic-Captions.git
 cd dynamic_captions
 
 # Install the build dependencies (esbuild)
