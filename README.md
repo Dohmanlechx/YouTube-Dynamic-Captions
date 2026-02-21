@@ -6,7 +6,7 @@ A Chrome Extension that roughly follows the speaker's face to position the capti
 
 ### Prerequisites
 
-Ensure you have Node.js and NPM installed on your machine so you can build.
+Ensure you have Node.js and NPM installed on your machine.
 
 ```bash
 # Clone the repository
