@@ -76,23 +76,19 @@ function startDetectionLoop() {
 
         const videoElement = document.querySelector('video.html5-main-video');
 
-        // Find the genuinely active caption window. YouTube often leaves hidden ghosts
-        // in the DOM which break single querySelector('.caption-window') requests.
-        let captionWindow = null;
-        for (const cw of document.querySelectorAll('.caption-window')) {
-            if (cw.style.display !== 'none' && window.getComputedStyle(cw).display !== 'none') {
-                captionWindow = cw;
-                break;
-            }
-        }
+        // Grab ALL active caption windows. YouTube often keeps ghost elements in the DOM.
+        // We must apply positions to all of them so the actual visible one isn't missed.
+        const activeCaptionWindows = Array.from(document.querySelectorAll('.caption-window'))
+            .filter(cw => cw.style.display !== 'none' && window.getComputedStyle(cw).display !== 'none');
 
-        if (videoElement && !videoElement.paused && captionWindow) {
+        // Wait until the video is fully loaded and has non-zero dimensions
+        if (videoElement && !videoElement.paused && videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
             if (timestamp - lastProcessedTimeMs >= frameIntervalMs) {
                 lastProcessedTimeMs = timestamp;
 
                 try {
                     const results = faceDetector.detectForVideo(videoElement, performance.now());
-                    handleDetectionResults(results, videoElement, captionWindow);
+                    handleDetectionResults(results, videoElement, activeCaptionWindows);
                 } catch (e) {
                     console.error("[Dynamic Captions] Detection error:", e);
                 }
@@ -108,23 +104,76 @@ function startDetectionLoop() {
 }
 let lastCaptionX = null;
 let lastCaptionY = null;
-const POSITION_UPDATE_THRESHOLD = 30; // Reduced from 200 for more responsive tracking
+let consecutiveFramesWithoutFace = 0;
+const POSITION_UPDATE_THRESHOLD = 100;
+const DEBUG_DRAW_FACE = true; // Set to true to see the face bounding box
 
-function handleDetectionResults(results, videoElement, captionWindow) {
-    // If no face or >1 face is found, reset positioning to YouTube's default
+function drawDebugBox(videoRect, playerContainer, bbox, scaleX, scaleY) {
+    if (!DEBUG_DRAW_FACE) return;
+
+    let debugBox = document.getElementById('dynamic-captions-debug-box');
+    if (!debugBox) {
+        debugBox = document.createElement('div');
+        debugBox.id = 'dynamic-captions-debug-box';
+        debugBox.style.position = 'absolute';
+        debugBox.style.border = '4px solid red';
+        debugBox.style.pointerEvents = 'none'; // Don't block clicks on the player
+        debugBox.style.zIndex = '999999';
+        playerContainer.appendChild(debugBox);
+    }
+
+    // Convert the MediaPipe bbox (intrinsic) into playerContainer-relative pixels
+    const width = bbox.width * scaleX;
+    const height = bbox.height * scaleY;
+    const left = (videoRect.left + (bbox.originX * scaleX)) - playerContainer.getBoundingClientRect().left;
+    const top = (videoRect.top + (bbox.originY * scaleY)) - playerContainer.getBoundingClientRect().top;
+
+    debugBox.style.width = `${width}px`;
+    debugBox.style.height = `${height}px`;
+    debugBox.style.left = `${left}px`;
+    debugBox.style.top = `${top}px`;
+}
+
+function clearDebugBox() {
+    const debugBox = document.getElementById('dynamic-captions-debug-box');
+    if (debugBox) {
+        debugBox.remove();
+    }
+}
+
+function handleDetectionResults(results, videoElement, activeCaptionWindows) {
+    // If no face is found, wait a few frames before resetting to YouTube's default
     if (!results.detections || results.detections.length !== 1) {
-        resetCaptionPosition();
+        clearDebugBox();
+        consecutiveFramesWithoutFace++;
+        // 3 consecutive frames (approx 3 seconds) without a face
+        if (consecutiveFramesWithoutFace >= 3) {
+            lastCaptionX = null;
+            lastCaptionY = null;
+            resetCaptionPosition();
+        }
         return;
     }
 
-    const face = results.detections[0];
+    consecutiveFramesWithoutFace = 0;
+
+    // Pick the largest face if multiple detections occur (e.g. background faces)
+    let face = results.detections[0];
+    if (results.detections.length > 1) {
+        face = results.detections.reduce((prev, current) => {
+            const prevArea = prev.boundingBox.width * prev.boundingBox.height;
+            const currentArea = current.boundingBox.width * current.boundingBox.height;
+            return (prevArea > currentArea) ? prev : current;
+        });
+    }
+
     const bbox = face.boundingBox;
 
     const videoRect = videoElement.getBoundingClientRect();
 
-    // playerContainer is a much safer anchor than captionWindow.parentElement 
-    // because its bounds are static, preventing the trackpoint from shifting erratically.
-    const playerContainer = document.querySelector('.html5-video-player') || captionWindow.parentElement;
+    // playerContainer is a much safer anchor because its bounds are static,
+    // preventing the trackpoint from shifting erratically.
+    const playerContainer = document.querySelector('.html5-video-player') || document.body;
     const playerRect = playerContainer.getBoundingClientRect();
 
     // MediaPipe bounding box coordinates are relative to intrinsic video size
@@ -142,10 +191,38 @@ function handleDetectionResults(results, videoElement, captionWindow) {
     const relativeX = faceCenterXScreen - playerRect.left;
     const relativeY = faceBottomYScreen - playerRect.top;
 
+    // Draw visual debugging rectangle if enabled
+    drawDebugBox(videoRect, playerContainer, bbox, scaleX, scaleY);
+
     // Add some spacing to separate the text from the chin
     const verticalOffset = 20;
-    const targetX = relativeX;
-    const targetY = relativeY + verticalOffset;
+
+    // Use the first active caption window to gauge the text box dimensions
+    const sampleWindow = activeCaptionWindows[0];
+    let halfWidth = 100; // safe default fallback
+    let captionHeight = 40;
+
+    if (sampleWindow) {
+        const rect = sampleWindow.getBoundingClientRect();
+        if (rect.width > 0) {
+            halfWidth = rect.width / 2;
+            captionHeight = rect.height;
+        }
+    }
+
+    // Dynamic Edge Bounding:
+    // Ensure the text box doesn't get clipped by the left or right edges of the player
+    // This prevents YouTube's overlap-detection scripts from resetting it.
+    const padding = 50; // Increased padding to prevent edge bleeding
+    const minSafeX = halfWidth + padding;
+    const maxSafeX = playerRect.width - halfWidth - padding;
+
+    // Ensure it doesn't clip off the top or bottom either
+    const minSafeY = padding;
+    const maxSafeY = playerRect.height - captionHeight - padding;
+
+    const targetX = Math.max(minSafeX, Math.min(relativeX, maxSafeX));
+    const targetY = Math.max(minSafeY, Math.min(relativeY + verticalOffset, maxSafeY));
 
     let updateRequired = false;
 
@@ -161,35 +238,40 @@ function handleDetectionResults(results, videoElement, captionWindow) {
         }
     }
 
-    let positionJustApplied = false;
-
-    // Always ensure the CSS class is applied as long as a single face is visible
-    if (!captionWindow.classList.contains('dynamic-positioned')) {
-        captionWindow.classList.add('no-transition');
-        captionWindow.classList.add('dynamic-positioned');
-        positionJustApplied = true;
-    }
-
     if (updateRequired) {
         lastCaptionX = targetX;
         lastCaptionY = targetY;
     }
 
-    // Always ensure the CSS variables are present. If we just re-applied the class,
-    // or if updateRequired is true, we must inject the properties.
-    if (positionJustApplied || updateRequired) {
-        captionWindow.style.setProperty('--caption-left', `${lastCaptionX}px`);
-        captionWindow.style.setProperty('--caption-top', `${lastCaptionY}px`);
-    }
+    // Apply custom variables to ALL identified active caption windows
+    for (const captionWindow of activeCaptionWindows) {
+        let positionJustApplied = false;
 
-    // Force the browser to render the styles instantly without animation
-    if (positionJustApplied) {
-        captionWindow.offsetHeight; // Force reflow
-        captionWindow.classList.remove('no-transition');
+        // Always ensure the CSS class is applied as long as a single face is visible
+        if (!captionWindow.classList.contains('dynamic-positioned')) {
+            captionWindow.classList.add('no-transition');
+            captionWindow.classList.add('dynamic-positioned');
+            positionJustApplied = true;
+        }
+
+        // Always ensure the CSS variables are present. If we just re-applied the class,
+        // or if updateRequired is true, we must inject the properties.
+        if (positionJustApplied || updateRequired) {
+            captionWindow.style.setProperty('--caption-left', `${lastCaptionX}px`);
+            captionWindow.style.setProperty('--caption-top', `${lastCaptionY}px`);
+        }
+
+        // Force the browser to render the styles instantly without animation
+        if (positionJustApplied) {
+            captionWindow.offsetHeight; // Force reflow
+            captionWindow.classList.remove('no-transition');
+        }
     }
 }
 
 function resetCaptionPosition() {
+    clearDebugBox();
+
     // We intentionally DO NOT reset lastCaptionX and lastCaptionY here.
     // Preserving them allows the MutationObserver to instantly restore 
     // the caption's position when YouTube reconstructs the caption element
