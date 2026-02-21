@@ -2,6 +2,14 @@ let faceDetector = null;
 let isDetecting = false;
 let isInitializing = false;
 let animationFrameId = null;
+let extensionEnabled = true;
+
+// Load the saved user preference
+chrome.storage.local.get(['dynamicCaptionsEnabled'], (result) => {
+    if (result.dynamicCaptionsEnabled !== undefined) {
+        extensionEnabled = result.dynamicCaptionsEnabled;
+    }
+});
 
 async function initFaceDetector() {
     if (isInitializing || faceDetector) return;
@@ -78,8 +86,16 @@ function startDetectionLoop() {
     const frameIntervalMs = 1000 / targetFPS;
 
     const loop = (timestamp) => {
+        injectToggleButton();
+
         // CPU Optimization: Stop completely if the user switches to a different browser tab
-        if (!isDetecting || document.hidden) {
+        // Also pause if the user disabled the extension via the player toggle button
+        if (!isDetecting || document.hidden || !extensionEnabled) {
+            if (!extensionEnabled && (lastCaptionX !== null || lastCaptionY !== null)) {
+                lastCaptionX = null;
+                lastCaptionY = null;
+                resetCaptionPosition();
+            }
             animationFrameId = requestAnimationFrame(loop);
             return;
         }
@@ -149,6 +165,59 @@ function clearDebugBox() {
     if (debugBox) {
         debugBox.remove();
     }
+}
+
+function injectToggleButton() {
+    if (document.getElementById('dynamic-captions-toggle')) return;
+    const controls = document.querySelector('.ytp-right-controls');
+    if (!controls) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'dynamic-captions-toggle';
+    btn.className = 'ytp-button';
+
+    // We remove the hardcoded inline styles (padding, margin, verticalAlign) 
+    // to allow YouTube's native `.ytp-button` CSS class to auto-center the SVG.
+    // We only enforce a standard width if necessary, but standard class is usually enough.
+
+    // Make sure this runs once when creating the button
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+
+    const updateIcon = () => {
+        const color = extensionEnabled ? '#fff' : '#aaa';
+        const opacity = extensionEnabled ? '1.0' : '0.5';
+        const strokeLine = !extensionEnabled
+            ? `<line x1="5" y1="5" x2="31" y2="31" stroke="#f00" stroke-width="2.5" />`
+            : '';
+
+        btn.innerHTML = `
+        <svg viewBox="0 0 36 36" width="36" height="36"
+             style="opacity:${opacity};">
+            <rect x="6" y="6" width="24" height="24"
+                  fill="none" stroke="${color}" stroke-width="2" rx="3" ry="3"/>
+            <circle cx="13" cy="15" r="2.2" fill="${color}"/>
+            <circle cx="23" cy="15" r="2.2" fill="${color}"/>
+            <path d="M11 23 q7 6 14 0"
+                  fill="none" stroke="${color}" stroke-width="1.5"/>
+            ${strokeLine}
+        </svg>
+    `;
+
+        btn.title = extensionEnabled ? 'Dynamic Captions: ON' : 'Dynamic Captions: OFF';
+    };
+
+    updateIcon();
+
+    btn.onclick = () => {
+        extensionEnabled = !extensionEnabled;
+        chrome.storage.local.set({ dynamicCaptionsEnabled: extensionEnabled });
+        updateIcon();
+    };
+
+    // Insert right before the settings gear (which is usually the first or second element)
+    controls.insertBefore(btn, controls.firstChild);
 }
 
 function handleDetectionResults(results, videoElement, activeCaptionWindows) {
