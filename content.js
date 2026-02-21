@@ -97,6 +97,9 @@ function startDetectionLoop() {
 
     animationFrameId = requestAnimationFrame(loop);
 }
+let lastCaptionX = null;
+let lastCaptionY = null;
+const POSITION_UPDATE_THRESHOLD = 200; // Pixels distance threshold
 
 function handleDetectionResults(results, videoElement, captionWindow) {
     // If no face or >1 face is found, reset positioning to YouTube's default
@@ -128,14 +131,39 @@ function handleDetectionResults(results, videoElement, captionWindow) {
 
     // Add some spacing to separate the text from the chin
     const verticalOffset = 20;
+    const targetX = relativeX;
+    const targetY = relativeY + verticalOffset;
 
-    // Apply custom CSS variables for our styles override
+    let updateRequired = false;
+
+    if (lastCaptionX === null || lastCaptionY === null) {
+        updateRequired = true;
+    } else {
+        const dx = targetX - lastCaptionX;
+        const dy = targetY - lastCaptionY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > POSITION_UPDATE_THRESHOLD) {
+            updateRequired = true;
+        }
+    }
+
+    // Always ensure the CSS class is applied as long as a single face is visible
     captionWindow.classList.add('dynamic-positioned');
-    captionWindow.style.setProperty('--caption-left', `${relativeX}px`);
-    captionWindow.style.setProperty('--caption-top', `${relativeY + verticalOffset}px`);
+
+    if (updateRequired) {
+        lastCaptionX = targetX;
+        lastCaptionY = targetY;
+        // Apply custom CSS variables for our styles override
+        captionWindow.style.setProperty('--caption-left', `${targetX}px`);
+        captionWindow.style.setProperty('--caption-top', `${targetY}px`);
+    }
 }
 
 function resetCaptionPosition(captionWindow) {
+    lastCaptionX = null;
+    lastCaptionY = null;
+
     if (captionWindow && captionWindow.classList.contains('dynamic-positioned')) {
         captionWindow.classList.remove('dynamic-positioned');
         captionWindow.style.removeProperty('--caption-left');
