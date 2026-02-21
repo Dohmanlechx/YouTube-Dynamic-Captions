@@ -4,15 +4,13 @@ A Chrome Extension that roughly follows the speaker's face to position the capti
 
 ## Installation (Unpacked)
 
-Because this extension uses bundled WebAssembly files that must bypass specific Manifest V3 Content Security Policies, you must install it locally as an "Unpacked Extension" containing the built `/dist` directory.
-
 ### Prerequisites
 
-Ensure you have Node.js and NPM installed on your machine so you can build the final Javascript bundle.
+Ensure you have Node.js and NPM installed on your machine.
 
 ```bash
 # Clone the repository
-git clone https://github.com/dohmanlechx/dynamic_captions.git
+git clone https://github.com/Dohmanlechx/YouTube-Dynamic-Captions.git
 cd dynamic_captions
 
 # Install the build dependencies (esbuild)
@@ -22,7 +20,7 @@ npm install
 npm run build
 ```
 
-### Loading into Chrome
+### Loading into Chrome (or any Chromium-based web browser)
 
 1. Open a new tab in Google Chrome and navigate to `chrome://extensions/`
 2. In the top right corner, toggle the switch for **Developer mode** to **ON**.
