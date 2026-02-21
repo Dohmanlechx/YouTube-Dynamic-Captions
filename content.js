@@ -19,7 +19,13 @@ async function initFaceDetector() {
 
         // Emscripten runtime bug in strict mode: `custom_dbg` block-scoped function declaration
         if (typeof globalThis.custom_dbg === 'undefined') {
-            globalThis.custom_dbg = console.warn;
+            globalThis.custom_dbg = function (...args) {
+                // Filter out harmless WebGL/OpenGL warnings on video change
+                if (args[0] && typeof args[0] === 'string' && args[0].includes("OpenGL error checking is disabled")) {
+                    return;
+                }
+                console.warn(...args);
+            };
         }
 
         // Import the locally bundled module
