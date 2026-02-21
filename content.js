@@ -75,9 +75,18 @@ function startDetectionLoop() {
         if (!isDetecting) return;
 
         const videoElement = document.querySelector('video.html5-main-video');
-        const captionWindow = document.querySelector('.caption-window');
 
-        if (videoElement && !videoElement.paused && captionWindow && captionWindow.style.display !== 'none') {
+        // Find the genuinely active caption window. YouTube often leaves hidden ghosts
+        // in the DOM which break single querySelector('.caption-window') requests.
+        let captionWindow = null;
+        for (const cw of document.querySelectorAll('.caption-window')) {
+            if (cw.style.display !== 'none' && window.getComputedStyle(cw).display !== 'none') {
+                captionWindow = cw;
+                break;
+            }
+        }
+
+        if (videoElement && !videoElement.paused && captionWindow) {
             if (timestamp - lastProcessedTimeMs >= frameIntervalMs) {
                 lastProcessedTimeMs = timestamp;
 
@@ -89,7 +98,7 @@ function startDetectionLoop() {
                 }
             }
         } else {
-            resetCaptionPosition(captionWindow);
+            resetCaptionPosition();
         }
 
         animationFrameId = requestAnimationFrame(loop);
@@ -99,12 +108,12 @@ function startDetectionLoop() {
 }
 let lastCaptionX = null;
 let lastCaptionY = null;
-const POSITION_UPDATE_THRESHOLD = 200; // Pixels distance threshold
+const POSITION_UPDATE_THRESHOLD = 30; // Reduced from 200 for more responsive tracking
 
 function handleDetectionResults(results, videoElement, captionWindow) {
     // If no face or >1 face is found, reset positioning to YouTube's default
     if (!results.detections || results.detections.length !== 1) {
-        resetCaptionPosition(captionWindow);
+        resetCaptionPosition();
         return;
     }
 
@@ -112,7 +121,11 @@ function handleDetectionResults(results, videoElement, captionWindow) {
     const bbox = face.boundingBox;
 
     const videoRect = videoElement.getBoundingClientRect();
-    const playerRect = captionWindow.parentElement.getBoundingClientRect();
+
+    // playerContainer is a much safer anchor than captionWindow.parentElement 
+    // because its bounds are static, preventing the trackpoint from shifting erratically.
+    const playerContainer = document.querySelector('.html5-video-player') || captionWindow.parentElement;
+    const playerRect = playerContainer.getBoundingClientRect();
 
     // MediaPipe bounding box coordinates are relative to intrinsic video size
     const scaleX = videoRect.width / videoElement.videoWidth;
@@ -160,9 +173,13 @@ function handleDetectionResults(results, videoElement, captionWindow) {
     if (updateRequired) {
         lastCaptionX = targetX;
         lastCaptionY = targetY;
-        // Apply custom CSS variables for our styles override
-        captionWindow.style.setProperty('--caption-left', `${targetX}px`);
-        captionWindow.style.setProperty('--caption-top', `${targetY}px`);
+    }
+
+    // Always ensure the CSS variables are present. If we just re-applied the class,
+    // or if updateRequired is true, we must inject the properties.
+    if (positionJustApplied || updateRequired) {
+        captionWindow.style.setProperty('--caption-left', `${lastCaptionX}px`);
+        captionWindow.style.setProperty('--caption-top', `${lastCaptionY}px`);
     }
 
     // Force the browser to render the styles instantly without animation
@@ -172,7 +189,7 @@ function handleDetectionResults(results, videoElement, captionWindow) {
     }
 }
 
-function resetCaptionPosition(captionWindow) {
+function resetCaptionPosition() {
     // We intentionally DO NOT reset lastCaptionX and lastCaptionY here.
     // Preserving them allows the MutationObserver to instantly restore 
     // the caption's position when YouTube reconstructs the caption element
@@ -180,10 +197,13 @@ function resetCaptionPosition(captionWindow) {
     // lastCaptionX = null;
     // lastCaptionY = null;
 
-    if (captionWindow && captionWindow.classList.contains('dynamic-positioned')) {
-        captionWindow.classList.remove('dynamic-positioned');
-        captionWindow.style.removeProperty('--caption-left');
-        captionWindow.style.removeProperty('--caption-top');
+    const captionWindows = document.querySelectorAll('.caption-window');
+    for (const captionWindow of captionWindows) {
+        if (captionWindow.classList.contains('dynamic-positioned')) {
+            captionWindow.classList.remove('dynamic-positioned');
+            captionWindow.style.removeProperty('--caption-left');
+            captionWindow.style.removeProperty('--caption-top');
+        }
     }
 }
 
@@ -193,22 +213,38 @@ const captionObserver = new MutationObserver((mutations) => {
     if (lastCaptionX === null || lastCaptionY === null) return;
 
     for (const mutation of mutations) {
-        // We only care if YouTube added/removed nodes, or changed styles that might break our positioning
-        if (mutation.type === 'childList' || mutation.type === 'attributes') {
-            const captionWindow = document.querySelector('.caption-window');
-            if (captionWindow && captionWindow.style.display !== 'none') {
-                // The element exists and is visible. Re-apply our positioning classes and variables
-                // if YouTube stripped them during a text update.
-                if (!captionWindow.classList.contains('dynamic-positioned')) {
-                    captionWindow.classList.add('no-transition');
-                    captionWindow.classList.add('dynamic-positioned');
-                    captionWindow.style.setProperty('--caption-left', `${lastCaptionX}px`);
-                    captionWindow.style.setProperty('--caption-top', `${lastCaptionY}px`);
+        // Intercept newly added caption windows exactly as they hit the DOM
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) {
+                    // Extract the window either directly or from its children payload
+                    const cws = node.classList && node.classList.contains('caption-window')
+                        ? [node]
+                        : (node.querySelectorAll ? Array.from(node.querySelectorAll('.caption-window')) : []);
 
-                    // Force a synchronous reflow so the browser places the caption at the 
-                    // known coordinates instantly without animating from 0,0
-                    captionWindow.offsetHeight;
-                    captionWindow.classList.remove('no-transition');
+                    for (const cw of cws) {
+                        cw.classList.add('no-transition');
+                        cw.classList.add('dynamic-positioned');
+                        cw.style.setProperty('--caption-left', `${lastCaptionX}px`);
+                        cw.style.setProperty('--caption-top', `${lastCaptionY}px`);
+                        cw.offsetHeight; // Force reflow
+                        cw.classList.remove('no-transition');
+                    }
+                }
+            });
+        }
+
+        // Handle attribute changes on existing visible caption windows
+        if (mutation.type === 'attributes' && mutation.target.classList && mutation.target.classList.contains('caption-window')) {
+            const cw = mutation.target;
+            if (cw.style.display !== 'none' && window.getComputedStyle(cw).display !== 'none') {
+                if (!cw.classList.contains('dynamic-positioned')) {
+                    cw.classList.add('no-transition');
+                    cw.classList.add('dynamic-positioned');
+                    cw.style.setProperty('--caption-left', `${lastCaptionX}px`);
+                    cw.style.setProperty('--caption-top', `${lastCaptionY}px`);
+                    cw.offsetHeight;
+                    cw.classList.remove('no-transition');
                 }
             }
         }
