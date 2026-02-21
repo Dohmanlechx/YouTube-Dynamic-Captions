@@ -1,0 +1,12 @@
+{
+    "name": "dynamic-captions",
+    "version": "1.0.0",
+    "description": "Dynamic Captions Chrome Extension",
+    "scripts": {
+        "build": "esbuild content.js --bundle --outfile=dist/content.js",
+        "watch": "esbuild content.js --bundle --outfile=dist/content.js --watch"
+    },
+    "devDependencies": {
+        "esbuild": "^0.27.3"
+    }
+}

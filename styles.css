@@ -1,0 +1,13 @@
+/* styles.css */
+.caption-window.dynamic-positioned {
+    /* Dynamic Positioning Overrides */
+    left: var(--caption-left) !important;
+    top: var(--caption-top) !important;
+    bottom: auto !important;
+    right: auto !important;
+    margin-left: 0 !important;
+    transform: translateX(-50%) !important;
+
+    /* Smooth transition for the tracking motion */
+    transition: left 0.15s ease-out, top 0.15s ease-out !important;
+}

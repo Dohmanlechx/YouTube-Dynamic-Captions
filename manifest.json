@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Dynamic Captions for YouTube",
+  "version": "1.0.0",
+  "description": "Automatically moves YouTube captions precisely under the speaker's face.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/watch*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/vision_bundle.mjs",
+        "lib/vision_wasm_internal.wasm",
+        "lib/vision_wasm_internal.js",
+        "models/blaze_face_short_range.tflite"
+      ],
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
+    }
+  ]
+}
