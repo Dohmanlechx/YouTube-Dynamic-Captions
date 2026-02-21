@@ -74,11 +74,15 @@ function startDetectionLoop() {
     isDetecting = true;
 
     let lastProcessedTimeMs = -1;
-    const targetFPS = 15;
+    const targetFPS = 10; // Capped at 10 FPS for massive CPU savings
     const frameIntervalMs = 1000 / targetFPS;
 
     const loop = (timestamp) => {
-        if (!isDetecting) return;
+        // CPU Optimization: Stop completely if the user switches to a different browser tab
+        if (!isDetecting || document.hidden) {
+            animationFrameId = requestAnimationFrame(loop);
+            return;
+        }
 
         const videoElement = document.querySelector('video.html5-main-video');
 
