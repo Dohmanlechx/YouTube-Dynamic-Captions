@@ -1,3 +1,7 @@
+<p align="center" width="100%">
+    <img src="./assets/demo.gif">
+</p>
+
 # Dynamic Captions for YouTube
 
 A Chrome Extension that roughly follows the speaker's face to position the captions.
