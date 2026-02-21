@@ -148,8 +148,14 @@ function handleDetectionResults(results, videoElement, captionWindow) {
         }
     }
 
+    let positionJustApplied = false;
+
     // Always ensure the CSS class is applied as long as a single face is visible
-    captionWindow.classList.add('dynamic-positioned');
+    if (!captionWindow.classList.contains('dynamic-positioned')) {
+        captionWindow.classList.add('no-transition');
+        captionWindow.classList.add('dynamic-positioned');
+        positionJustApplied = true;
+    }
 
     if (updateRequired) {
         lastCaptionX = targetX;
@@ -158,11 +164,21 @@ function handleDetectionResults(results, videoElement, captionWindow) {
         captionWindow.style.setProperty('--caption-left', `${targetX}px`);
         captionWindow.style.setProperty('--caption-top', `${targetY}px`);
     }
+
+    // Force the browser to render the styles instantly without animation
+    if (positionJustApplied) {
+        captionWindow.offsetHeight; // Force reflow
+        captionWindow.classList.remove('no-transition');
+    }
 }
 
 function resetCaptionPosition(captionWindow) {
-    lastCaptionX = null;
-    lastCaptionY = null;
+    // We intentionally DO NOT reset lastCaptionX and lastCaptionY here.
+    // Preserving them allows the MutationObserver to instantly restore 
+    // the caption's position when YouTube reconstructs the caption element
+    // for the next line of text.
+    // lastCaptionX = null;
+    // lastCaptionY = null;
 
     if (captionWindow && captionWindow.classList.contains('dynamic-positioned')) {
         captionWindow.classList.remove('dynamic-positioned');
@@ -171,15 +187,60 @@ function resetCaptionPosition(captionWindow) {
     }
 }
 
-// Observe modifications defensively (incase YouTube deletes/re-adds video element)
+// A dedicated observer just for catching YouTube's subtitle rebuilds
+const captionObserver = new MutationObserver((mutations) => {
+    // If we aren't tracking a face, don't intervene
+    if (lastCaptionX === null || lastCaptionY === null) return;
+
+    for (const mutation of mutations) {
+        // We only care if YouTube added/removed nodes, or changed styles that might break our positioning
+        if (mutation.type === 'childList' || mutation.type === 'attributes') {
+            const captionWindow = document.querySelector('.caption-window');
+            if (captionWindow && captionWindow.style.display !== 'none') {
+                // The element exists and is visible. Re-apply our positioning classes and variables
+                // if YouTube stripped them during a text update.
+                if (!captionWindow.classList.contains('dynamic-positioned')) {
+                    captionWindow.classList.add('no-transition');
+                    captionWindow.classList.add('dynamic-positioned');
+                    captionWindow.style.setProperty('--caption-left', `${lastCaptionX}px`);
+                    captionWindow.style.setProperty('--caption-top', `${lastCaptionY}px`);
+
+                    // Force a synchronous reflow so the browser places the caption at the 
+                    // known coordinates instantly without animating from 0,0
+                    captionWindow.offsetHeight;
+                    captionWindow.classList.remove('no-transition');
+                }
+            }
+        }
+    }
+});
+
+// Observe overall DOM to setup face detector
 const observer = new MutationObserver((mutations) => {
-    if (document.querySelector('video.html5-main-video') && !isDetecting && !isInitializing) {
+    const videoElement = document.querySelector('video.html5-main-video');
+    if (videoElement && !isDetecting && !isInitializing) {
         initFaceDetector();
+
+        // Also attach the dedicated caption observer to the player container
+        const playerContainer = document.querySelector('.html5-video-player');
+        if (playerContainer) {
+            // We observe subtree so we catch the inner text span changes 
+            // and attributes because YouTube sometimes just updates the style
+            captionObserver.observe(playerContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        }
     }
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
 // Attempt initial start
-if (document.querySelector('video.html5-main-video')) {
+const initialVideo = document.querySelector('video.html5-main-video');
+if (initialVideo) {
     initFaceDetector();
+
+    setTimeout(() => {
+        const playerContainer = document.querySelector('.html5-video-player');
+        if (playerContainer) {
+            captionObserver.observe(playerContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        }
+    }, 1000);
 }

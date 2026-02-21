@@ -11,3 +11,7 @@
     /* Smooth transition for the tracking motion */
     transition: left 0.15s ease-out, top 0.15s ease-out !important;
 }
+
+.caption-window.dynamic-positioned.no-transition {
+    transition: none !important;
+}
