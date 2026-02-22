@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Dynamic Captions for YouTube",
+  "name": "Face-Tracking Captions for YouTube",
   "version": "1.0.0",
   "description": "Automatically moves YouTube captions precisely under the speaker's face.",
   "permissions": [

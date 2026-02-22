@@ -34,7 +34,7 @@ export function injectToggleButton() {
         </svg>
     `;
 
-        btn.title = state.extensionEnabled ? 'Dynamic Captions: ON' : 'Dynamic Captions: OFF';
+        btn.title = state.extensionEnabled ? 'Face-Tracking Captions: ON' : 'Face-Tracking Captions: OFF';
     };
 
     updateIcon();

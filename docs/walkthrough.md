@@ -1,4 +1,4 @@
-# Project Walkthrough: YouTube Dynamic Captions
+# Project Walkthrough: YouTube Face-Tracking Captions
 
 This architectural overview breaks down how the extension works under the hood, why certain technical decisions were made, and how data flows from the AI model to the YouTube player.
 

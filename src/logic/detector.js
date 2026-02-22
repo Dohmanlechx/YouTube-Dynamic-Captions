@@ -8,7 +8,7 @@ export async function initFaceDetector() {
     try {
         const extensionUrl = chrome.runtime.getURL('');
         const visionModuleUrl = extensionUrl + 'lib/vision_bundle.mjs';
-        console.log("[Dynamic Captions] Importing Vision Module from:", visionModuleUrl);
+        console.log("[Face-Tracking Captions] Importing Vision Module from:", visionModuleUrl);
 
         // Define globalThis.Module to avoid MediaPipe's "ModuleFactory not set" error
         // caused by Manifest V3 CSP restricting `eval()` inside isolated content scripts.
@@ -60,11 +60,11 @@ export async function initFaceDetector() {
             maxResults: 2
         });
 
-        console.log("[Dynamic Captions] FaceDetector initialized.");
+        console.log("[Face-Tracking Captions] FaceDetector initialized.");
         state.isInitializing = false;
         startDetectionLoop();
     } catch (error) {
-        console.error("[Dynamic Captions] Error initializing FaceDetector:", error);
+        console.error("[Face-Tracking Captions] Error initializing FaceDetector:", error);
         state.isInitializing = false;
     }
 }

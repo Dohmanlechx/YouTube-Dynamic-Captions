@@ -71,7 +71,7 @@ export const observer = new MutationObserver((mutations) => {
             attributes: true,
             attributeFilter: ['style', 'class']
         });
-        console.log("[Dynamic Captions] Caption Observer attached to new player container.");
+        console.log("[Face-Tracking Captions] Caption Observer attached to new player container.");
     }
 });
 

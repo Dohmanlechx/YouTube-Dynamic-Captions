@@ -44,7 +44,7 @@ export function startDetectionLoop() {
                     const results = state.faceDetector.detectForVideo(videoElement, performance.now());
                     handleDetectionResults(results, videoElement, activeCaptionWindows);
                 } catch (e) {
-                    console.error("[Dynamic Captions] Detection error:", e);
+                    console.error("[Face-Tracking Captions] Detection error:", e);
                 }
             }
         } else {

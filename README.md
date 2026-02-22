@@ -2,7 +2,7 @@
     <img src="./assets/demo.gif">
 </p>
 
-# Dynamic Captions for YouTube
+# Face-Tracking Captions for YouTube
 
 A Chrome Extension that roughly follows the speaker's face to position the captions.
 
