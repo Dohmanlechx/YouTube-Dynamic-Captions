@@ -5,7 +5,7 @@
     "scripts": {
         "build": "esbuild src/index.js --bundle --outfile=dist/content.js",
         "watch": "esbuild src/index.js --bundle --outfile=dist/content.js --watch",
-        "package": "powershell -Command \"Compress-Archive -Path manifest.json, styles.css, assets/icon.png, dist, lib, models, src/popup -DestinationPath release.zip -Force\""
+        "package": "powershell -Command \"Compress-Archive -Path manifest.json, styles.css, assets, dist, lib, models, src/popup -DestinationPath release.zip -Force\""
     },
     "devDependencies": {
         "esbuild": "^0.27.3"
