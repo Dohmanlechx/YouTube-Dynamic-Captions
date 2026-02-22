@@ -41,7 +41,13 @@ export function injectToggleButton() {
 
     btn.onclick = () => {
         state.extensionEnabled = !state.extensionEnabled;
-        chrome.storage.local.set({ dynamicCaptionsEnabled: state.extensionEnabled });
+
+        try {
+            chrome.storage.local.set({ dynamicCaptionsEnabled: state.extensionEnabled });
+        } catch (e) {
+            console.warn("[Face-Tracking Captions] Extension context invalidated. Please refresh the web page!");
+        }
+
         updateIcon();
     };
 
