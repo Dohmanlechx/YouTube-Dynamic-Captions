@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Dynamic Captions Settings</title>
     <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -15,9 +17,11 @@
         <main>
             <div class="setting-group">
                 <div class="setting-header">
-                    <label for="positionUpdateThreshold">Position Update Threshold</label>
+                    <label for="positionUpdateThreshold">Tracking Smoothness</label>
                 </div>
-                <p class="description">Minimum distance (in pixels) the face must move before the captions are repositioned. Higher values prevent micro-jitters, lower values make it more fluid but use more CPU.</p>
+                <p class="description">Adjusts how smoothly the captions follow the speaker's face. Higher values feel
+                    smoother by ignoring small movements, while lower values offer strict and snappy alignment but use
+                    more CPU.</p>
                 <div class="slider-container">
                     <input type="range" id="positionUpdateThreshold" min="10" max="300" step="1">
                     <span class="value-display invisible" id="positionUpdateThresholdValue"></span>
@@ -26,10 +30,11 @@
 
             <div class="setting-group">
                 <div class="setting-header">
-                    <label for="minDetectionConfidence">Min Detection Confidence</label>
-                    <span class="value-display" id="minDetectionConfidenceValue">0.4</span>
+                    <label for="minDetectionConfidence">Strictness Level</label>
+                    <span class="value-display invisible" id="minDetectionConfidenceValue">0.4</span>
                 </div>
-                <p class="description">The minimum confidence score required for a face detection to be considered valid. Lower values may cause false positives, higher values may cause it to lose tracking.</p>
+                <p class="description">How strict the AI is when identifying a face. Make this stricter if the captions
+                    are tracking non-faces, or loosen it if it frequently loses track of the actual speaker.</p>
                 <div class="slider-container">
                     <input type="range" id="minDetectionConfidence" min="0.1" max="1.0" step="0.1">
                 </div>
@@ -37,10 +42,11 @@
 
             <div class="setting-group">
                 <div class="setting-header">
-                    <label for="resetDelaySeconds">Reset Delay (Seconds)</label>
+                    <label for="resetDelaySeconds">Return Delay (Seconds)</label>
                     <span class="value-display" id="resetDelaySecondsValue">3</span>
                 </div>
-                <p class="description">How many seconds the extension will wait after losing sight of a face before resetting the captions back to YouTube's default center position.</p>
+                <p class="description">How long to wait after the speaker leaves the frame before dropping the captions
+                    back to the bottom of the screen.</p>
                 <div class="slider-container">
                     <input type="range" id="resetDelaySeconds" min="0" max="15" step="1">
                 </div>
@@ -52,12 +58,14 @@
                         <input type="checkbox" id="debugDrawFace">
                         <span class="slider round"></span>
                     </label>
-                    <label for="debugDrawFace" class="toggle-label">Debug Draw Face</label>
+                    <label for="debugDrawFace" class="toggle-label">Show AI Tracker</label>
                 </div>
-                <p class="description">If true, draws a red rectangle around the detected face on the video player. Useful for verifying if the AI tracking is accurately finding the speaker.</p>
+                <p class="description">Draws a red highlight box around the detected face to help you visualize what the
+                    AI is analyzing on the screen.</p>
             </div>
         </main>
     </div>
     <script type="module" src="popup.js"></script>
 </body>
+
 </html>

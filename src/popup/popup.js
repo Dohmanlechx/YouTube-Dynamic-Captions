@@ -39,9 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resetDelayVal.textContent = config.RESET_DELAY_SECONDS;
     });
 
-    // Save functions
+    // Save functions with debouncer
+    const saveTimers = {};
     const saveSetting = (key, value) => {
-        chrome.storage.sync.set({ [key]: value });
+        clearTimeout(saveTimers[key]);
+        saveTimers[key] = setTimeout(() => {
+            chrome.storage.sync.set({ [key]: value });
+        }, 500); // Wait 500ms after the last move before saving
     };
 
     // Event listeners for inputs to save lively
