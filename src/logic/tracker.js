@@ -1,3 +1,4 @@
+import { config } from '../config.js';
 import { state } from '../state.js';
 import { injectToggleButton } from '../ui/toggle.js';
 import { handleDetectionResults, resetCaptionPosition } from './positioning.js';
@@ -7,11 +8,13 @@ export function startDetectionLoop() {
     state.isDetecting = true;
 
     let lastProcessedTimeMs = -1;
-    const targetFPS = 10; // Capped at 10 FPS for massive CPU savings
-    const frameIntervalMs = 1000 / targetFPS;
 
     const loop = (timestamp) => {
         injectToggleButton();
+
+        // Calculate target FPS dynamically based on user config smoothness
+        const targetFPS = config.POSITION_UPDATE_THRESHOLD < 50 ? 60 : 5;
+        const frameIntervalMs = 1000 / targetFPS;
 
         // CPU Optimization: Stop completely if the user switches to a different browser tab
         // Also pause if the user disabled the extension via the player toggle button

@@ -111,20 +111,30 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
     let updateRequired = false;
 
     if (state.lastCaptionX === null || state.lastCaptionY === null) {
+        state.lastCaptionX = targetX;
+        state.lastCaptionY = targetY;
         updateRequired = true;
     } else {
         const dx = targetX - state.lastCaptionX;
         const dy = targetY - state.lastCaptionY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance > config.POSITION_UPDATE_THRESHOLD) {
-            updateRequired = true;
+        if (config.POSITION_UPDATE_THRESHOLD < 50) {
+            // Premium smooth tracking (Lerp): Move a percentage of the distance per frame
+            if (distance > 1.0) {
+                // 0.15 lerp factor at 60fps produces a very smooth, "gimbal-like" camera follow effect
+                state.lastCaptionX += dx * 0.15;
+                state.lastCaptionY += dy * 0.15;
+                updateRequired = true;
+            }
+        } else {
+            // Battery-saving snap: Only update position if moved significantly
+            if (distance > config.POSITION_UPDATE_THRESHOLD) {
+                state.lastCaptionX = targetX;
+                state.lastCaptionY = targetY;
+                updateRequired = true;
+            }
         }
-    }
-
-    if (updateRequired) {
-        state.lastCaptionX = targetX;
-        state.lastCaptionY = targetY;
     }
 
     // Apply custom variables to ALL identified active caption windows

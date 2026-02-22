@@ -19,9 +19,9 @@
                 <div class="setting-header">
                     <label for="positionUpdateThreshold">Tracking Smoothness</label>
                 </div>
-                <p class="description">Adjusts how smoothly the captions follow the speaker's face. Higher values feel
-                    smoother by ignoring small movements, while lower values offer strict and snappy alignment but use
-                    more CPU.</p>
+                <p class="description">Adjusts the sensitivity of the movement tracker. Lower values provide smooth,
+                    continuous tracking at a higher framerate (uses more CPU). Higher values ignore small
+                    micro-movements to provide a more static position.</p>
                 <div class="slider-container">
                     <input type="range" id="positionUpdateThreshold" min="10" max="300" step="1">
                     <span class="value-display invisible" id="positionUpdateThresholdValue"></span>
