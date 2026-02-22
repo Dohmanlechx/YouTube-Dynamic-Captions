@@ -1,4 +1,4 @@
-import { POSITION_UPDATE_THRESHOLD, RESET_DELAY_SECONDS } from '../config.js';
+import { config } from '../config.js';
 import { state } from '../state.js';
 import { clearDebugBox, drawDebugBox } from '../ui/debug.js';
 
@@ -28,7 +28,7 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
         // Record when we first lost the face
         if (state.lastFaceSeenAt !== null) {
             const elapsedMs = Date.now() - state.lastFaceSeenAt;
-            if (elapsedMs >= RESET_DELAY_SECONDS * 1000) {
+            if (elapsedMs >= config.RESET_DELAY_SECONDS * 1000) {
                 state.lastCaptionX = null;
                 state.lastCaptionY = null;
                 state.lastFaceSeenAt = null;
@@ -117,7 +117,7 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
         const dy = targetY - state.lastCaptionY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance > POSITION_UPDATE_THRESHOLD) {
+        if (distance > config.POSITION_UPDATE_THRESHOLD) {
             updateRequired = true;
         }
     }

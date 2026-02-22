@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Captions Settings</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dynamic Captions</h1>
+            <p class="subtitle">Configuration</p>
+        </header>
+
+        <main>
+            <div class="setting-group">
+                <div class="setting-header">
+                    <label for="positionUpdateThreshold">Position Update Threshold</label>
+                </div>
+                <p class="description">Minimum distance (in pixels) the face must move before the captions are repositioned. Higher values prevent micro-jitters, lower values make it more fluid but use more CPU.</p>
+                <div class="slider-container">
+                    <input type="range" id="positionUpdateThreshold" min="10" max="300" step="1">
+                    <span class="value-display invisible" id="positionUpdateThresholdValue"></span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-header">
+                    <label for="minDetectionConfidence">Min Detection Confidence</label>
+                    <span class="value-display" id="minDetectionConfidenceValue">0.4</span>
+                </div>
+                <p class="description">The minimum confidence score required for a face detection to be considered valid. Lower values may cause false positives, higher values may cause it to lose tracking.</p>
+                <div class="slider-container">
+                    <input type="range" id="minDetectionConfidence" min="0.1" max="1.0" step="0.1">
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-header">
+                    <label for="resetDelaySeconds">Reset Delay (Seconds)</label>
+                    <span class="value-display" id="resetDelaySecondsValue">3</span>
+                </div>
+                <p class="description">How many seconds the extension will wait after losing sight of a face before resetting the captions back to YouTube's default center position.</p>
+                <div class="slider-container">
+                    <input type="range" id="resetDelaySeconds" min="0" max="15" step="1">
+                </div>
+            </div>
+
+            <div class="setting-group checkbox-group">
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="debugDrawFace">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="debugDrawFace" class="toggle-label">Debug Draw Face</label>
+                </div>
+                <p class="description">If true, draws a red rectangle around the detected face on the video player. Useful for verifying if the AI tracking is accurately finding the speaker.</p>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -9,6 +9,9 @@
   "host_permissions": [
     "*://*.youtube.com/*"
   ],
+  "action": {
+    "default_popup": "src/popup/popup.html"
+  },
   "content_scripts": [
     {
       "matches": [

@@ -1,4 +1,4 @@
-import { MIN_DETECTION_CONFIDENCE } from '../config.js';
+import { config } from '../config.js';
 import { state } from '../state.js';
 import { startDetectionLoop } from './tracker.js';
 
@@ -56,7 +56,7 @@ export async function initFaceDetector() {
                 delegate: "GPU"
             },
             runningMode: "VIDEO",
-            minDetectionConfidence: MIN_DETECTION_CONFIDENCE,
+            minDetectionConfidence: config.MIN_DETECTION_CONFIDENCE,
             maxResults: 2
         });
 

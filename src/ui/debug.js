@@ -1,7 +1,7 @@
-import { DEBUG_DRAW_FACE } from '../config.js';
+import { config } from '../config.js';
 
 export function drawDebugBox(videoRect, playerContainer, bbox, scaleX, scaleY) {
-    if (!DEBUG_DRAW_FACE) return;
+    if (!config.DEBUG_DRAW_FACE) return;
 
     let debugBox = document.getElementById('dynamic-captions-debug-box');
     if (!debugBox) {

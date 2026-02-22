@@ -26,7 +26,7 @@ npm run build
 
 ### Configuration
 
-Before building, you can adjust the extension's behavior by editing `src/config.js` to meet your needs. Each option is documented inline.
+You can adjust the extension's behavior dynamically at any time by clicking the extension icon in Chrome to open the settings popup. Each option is documented right in the UI.
 
 ### Loading into Chrome (or any Chromium-based web browser)
 
