@@ -33,7 +33,7 @@ You can adjust the extension's behavior dynamically at any time by clicking the 
 1. Open a new tab in Google Chrome and navigate to `chrome://extensions/`
 2. In the top right corner, toggle the switch for **Developer mode** to **ON**.
 3. In the top left corner, click the **Load unpacked** button.
-4. A file browser window will appear. Select the root `dynamic_captions` folder (the one containing the `manifest.json` file) and click **Select Folder**.
+4. A file browser window will appear. Select the root `YouTube-Dynamic-Captions` folder (the one containing the `manifest.json` file) and click **Select Folder**.
 
 The extension is now installed! 
 
