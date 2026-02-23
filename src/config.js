@@ -15,14 +15,14 @@ export const config = {
      * The minimum confidence score (0.0 to 1.0) required for a face detection to be considered valid.
      * Lower values may cause false positives, higher values may cause it to lose tracking.
      */
-    MIN_DETECTION_CONFIDENCE: 0.4,
+    MIN_DETECTION_CONFIDENCE: 0.5,
 
     /**
      * How many seconds the extension will wait after losing sight of a face
      * before resetting the captions back to YouTube's default center position.
      * This prevents the captions from flickering back during brief camera cuts.
      */
-    RESET_DELAY_SECONDS: 3
+    RESET_DELAY_SECONDS: 5
 };
 
 export function initConfig(callback) {
