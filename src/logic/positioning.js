@@ -6,7 +6,7 @@ export function resetCaptionPosition() {
     clearDebugBox();
 
     // We intentionally DO NOT reset lastCaptionX and lastCaptionY here.
-    // Preserving them allows the MutationObserver to instantly restore 
+    // Preserving them allows the MutationObserver to instantly restore
     // the caption's position when YouTube reconstructs the caption element
 
     const captionWindows = document.querySelectorAll('.caption-window');
@@ -75,6 +75,12 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
     const relativeX = faceCenterXScreen - playerRect.left;
     const relativeY = faceBottomYScreen - playerRect.top;
 
+    // Calculate video bounds relative to the player container
+    const videoRelativeLeft = videoRect.left - playerRect.left;
+    const videoRelativeTop = videoRect.top - playerRect.top;
+    const videoRelativeWidth = videoRect.width;
+    const videoRelativeHeight = videoRect.height;
+
     // Draw visual debugging rectangle if enabled
     drawDebugBox(videoRect, playerContainer, bbox, scaleX, scaleY);
 
@@ -95,15 +101,15 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
     }
 
     // Dynamic Edge Bounding:
-    // Ensure the text box doesn't get clipped by the left or right edges of the player
+    // Ensure the text box doesn't get clipped by the left or right edges of the VIDEO (not player)
     // This prevents YouTube's overlap-detection scripts from resetting it.
-    const padding = 50; // Increased padding to prevent edge bleeding
-    const minSafeX = halfWidth + padding;
-    const maxSafeX = playerRect.width - halfWidth - padding;
+    const padding = 0;
+    const minSafeX = videoRelativeLeft + padding;
+    const maxSafeX = videoRelativeLeft + videoRelativeWidth - padding;
 
     // Ensure it doesn't clip off the top or bottom either
-    const minSafeY = padding;
-    const maxSafeY = playerRect.height - captionHeight - padding;
+    const minSafeY = videoRelativeTop + padding;
+    const maxSafeY = videoRelativeTop + videoRelativeHeight - captionHeight - padding;
 
     const targetX = Math.max(minSafeX, Math.min(relativeX, maxSafeX));
     const targetY = Math.max(minSafeY, Math.min(relativeY + verticalOffset, maxSafeY));
