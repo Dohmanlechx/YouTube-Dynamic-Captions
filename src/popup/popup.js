@@ -1,10 +1,4 @@
-// Default config values
-const configDefaults = {
-    POSITION_UPDATE_THRESHOLD: 150,
-    DEBUG_DRAW_FACE: false,
-    MIN_DETECTION_CONFIDENCE: 0.4,
-    RESET_DELAY_SECONDS: 3
-};
+import { config as configDefaults } from '../config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const keys = Object.keys(configDefaults);
