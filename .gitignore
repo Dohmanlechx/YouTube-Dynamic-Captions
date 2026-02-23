@@ -32,3 +32,6 @@ Thumbs.db
 .env
 .env.test
 .env.production
+
+# Build
+release.zip
