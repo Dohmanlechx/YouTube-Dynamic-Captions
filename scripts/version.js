@@ -4,9 +4,9 @@ const path = require('path');
 const args = process.argv.slice(2);
 let releaseType = 'patch';
 
-if (args.includes('--major')) {
+if (args.includes('major')) {
     releaseType = 'major';
-} else if (args.includes('--minor')) {
+} else if (args.includes('minor')) {
     releaseType = 'minor';
 }
 
