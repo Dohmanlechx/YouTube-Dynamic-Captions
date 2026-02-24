@@ -115,16 +115,19 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
     const videoTop = videoRect.top - playerRect.top;
     const videoBottom = videoTop + videoRect.height;
 
+    // Add a small safety padding so letters don't touch the exact edge
+    const edgePadding = 60;
+
     // Check and correct for left edge collision
-    const captionLeftEdge = targetX - halfWidth;
+    const captionLeftEdge = targetX - halfWidth - edgePadding;
     if (captionLeftEdge < videoLeft) {
-        targetX = videoLeft + halfWidth;
+        targetX = videoLeft + halfWidth + edgePadding;
     }
 
     // Check and correct for right edge collision
-    const captionRightEdge = targetX + halfWidth;
+    const captionRightEdge = targetX + halfWidth + edgePadding;
     if (captionRightEdge > videoRight) {
-        targetX = videoRight - halfWidth;
+        targetX = videoRight - halfWidth - edgePadding;
     }
 
     // Ensure it doesn't clip off the top or bottom

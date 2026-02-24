@@ -7,6 +7,8 @@
     right: auto !important;
     margin: 0 !important;
     transform: translateX(-50%) !important;
+    width: max-content !important;
+    max-width: 70% !important;
 }
 
 .caption-window.dynamic-positioned.no-transition {
