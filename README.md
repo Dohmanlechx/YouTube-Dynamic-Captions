@@ -3,6 +3,7 @@
 </p>
 
 # Face-Tracking Captions for YouTube
+[[Google Web Store](https://chromewebstore.google.com/detail/face-tracking-captions-fo/faigganoaaagokpjpmkcaennmlbgepgd)]
 
 A Chrome Extension that roughly follows the speaker's face to position the captions.
 
