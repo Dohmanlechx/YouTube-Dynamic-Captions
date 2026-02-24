@@ -89,30 +89,51 @@ export function handleDetectionResults(results, videoElement, activeCaptionWindo
 
     // Use the first active caption window to gauge the text box dimensions
     const sampleWindow = activeCaptionWindows[0];
-    let halfWidth = 100; // safe default fallback
+    let halfWidth = 80; // safe default fallback (reduced from 100)
     let captionHeight = 40;
 
     if (sampleWindow) {
         const rect = sampleWindow.getBoundingClientRect();
-        if (rect.width > 0) {
+        if (rect.width > 50) { // Only use if we have a reasonable size
             halfWidth = rect.width / 2;
             captionHeight = rect.height;
         }
     }
 
+    // Ensure minimum bounds based on expected caption size
+    const minHalfWidth = 50;
+    halfWidth = Math.max(halfWidth, minHalfWidth);
+
     // Dynamic Edge Bounding:
-    // Ensure the text box doesn't get clipped by the left or right edges of the VIDEO (not player)
-    // This prevents YouTube's overlap-detection scripts from resetting it.
-    const padding = 0;
-    const minSafeX = videoRelativeLeft + padding;
-    const maxSafeX = videoRelativeLeft + videoRelativeWidth - padding;
+    // First, calculate the ideal position based on face location
+    let targetX = relativeX;
+    let targetY = relativeY + verticalOffset;
 
-    // Ensure it doesn't clip off the top or bottom either
-    const minSafeY = videoRelativeTop + padding;
-    const maxSafeY = videoRelativeTop + videoRelativeHeight - captionHeight - padding;
+    // Get the video boundaries within the player container
+    const videoLeft = videoRect.left - playerRect.left;
+    const videoRight = videoLeft + videoRect.width;
+    const videoTop = videoRect.top - playerRect.top;
+    const videoBottom = videoTop + videoRect.height;
 
-    const targetX = Math.max(minSafeX, Math.min(relativeX, maxSafeX));
-    const targetY = Math.max(minSafeY, Math.min(relativeY + verticalOffset, maxSafeY));
+    // Check and correct for left edge collision
+    const captionLeftEdge = targetX - halfWidth;
+    if (captionLeftEdge < videoLeft) {
+        targetX = videoLeft + halfWidth;
+    }
+
+    // Check and correct for right edge collision
+    const captionRightEdge = targetX + halfWidth;
+    if (captionRightEdge > videoRight) {
+        targetX = videoRight - halfWidth;
+    }
+
+    // Ensure it doesn't clip off the top or bottom
+    if (targetY < videoTop) {
+        targetY = videoTop;
+    }
+    if (targetY + captionHeight > videoBottom) {
+        targetY = videoBottom - captionHeight;
+    }
 
     let updateRequired = false;
 
