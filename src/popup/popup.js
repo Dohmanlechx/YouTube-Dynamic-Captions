@@ -1,6 +1,9 @@
 import { config as configDefaults } from '../config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const manifestData = chrome.runtime.getManifest();
+    document.getElementById('appVersion').textContent = 'v' + manifestData.version;
+
     const keys = Object.keys(configDefaults);
 
     // Domesticate UI elements

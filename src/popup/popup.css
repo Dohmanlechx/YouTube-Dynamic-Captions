@@ -190,13 +190,15 @@ input:checked+.slider.round:before {
     transform: translateX(20px);
 }
 
-.footer-credit {
-    text-align: right;
+.footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    padding: 0 4px;
     font-size: 11px;
     color: rgba(139, 139, 158, 0.5);
     /* Semi-transparent muted text */
-    margin-top: 4px;
-    padding-right: 4px;
     user-select: none;
     letter-spacing: 0.2px;
 }
