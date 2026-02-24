@@ -1,6 +1,6 @@
 {
     "name": "dynamic-captions",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Face-Tracking Captions Chrome Extension",
     "scripts": {
         "build": "esbuild src/index.js --bundle --outfile=dist/content.js",

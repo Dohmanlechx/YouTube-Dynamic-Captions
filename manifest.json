@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Face-Tracking Captions for YouTube",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Automatically moves YouTube captions precisely under the speaker's face.",
   "permissions": [
     "storage"
